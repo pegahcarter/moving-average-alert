@@ -12,3 +12,23 @@ For now, we're utilizing 1-hour price intervals and the **8, 21, 55, and 99** mo
 * Take the moving average for the most-recent price
 * If 8 > 21 > 55 > 99 or 8 < 21 < 55 < 99 (referring to the moving average $), we should see strong support or resistance
 * Send an SMS for coins matching the criteria above, labeling them as bullish or bearish
+
+### Setup
+* [Create a twilio account and phone #](https://www.twilio.com/login)
+* `git clone https://github.com/carlfarterson/TA_signal.git`
+* `cd TA_signal`
+* `pip install -r Requirements.txt`
+* Create a file **py/api.py** and paste the following with your information:
+```python
+account_sid = 'AC.............................'
+auth_token = '................................'
+twilio_number = '+1.........'
+recipients = ['+1..........', '+1..........']
+```
+* Note: keep recipients as a list, even if there is only 1 receipient.
+
+### Laundry list
+* Backtest different moving average periods
+* Backtest different types of moving averages (expontential, weighted)
+* Add BTC moving average as a factor (as the market is heavily correlated with BTC price movement)
+* Add indicators for sudden price volatility/volume changes
