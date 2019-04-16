@@ -3,13 +3,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from twilio.rest import Client
-from api import account_sid, auth_token, twilio_number, recipients
+from api import account_sid, auth_token, twilio_number, recipients, coins
 
 client = Client(account_sid, auth_token)
 x = ccxt.binance()
 
 windows = [8, 21, 55, 99]
-coins = ['BTC', 'ETH', 'LTC', 'BNB', 'RVN', 'NANO']
 message = ''
 
 for coin in coins:

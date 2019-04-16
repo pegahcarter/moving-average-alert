@@ -24,8 +24,9 @@ account_sid = 'AC.............................'
 auth_token = '................................'
 twilio_number = '+1.........'
 recipients = ['+1..........', '+1..........']
+coins = ['BTC', 'ETH', ...]
 ```
-* Note: keep recipients as a list, even if there is only 1 receipient.
+* Note: keep recipients and coins as a list, even if there's only 1 recipient/coin
 
 ### Laundry list
 * Backtest different moving average periods
