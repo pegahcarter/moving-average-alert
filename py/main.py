@@ -6,7 +6,7 @@ from twilio.rest import Client
 from api import account_sid, auth_token, twilio_number, recipients, coins
 
 client = Client(account_sid, auth_token)
-x = ccxt.binance()
+binance = ccxt.binance()
 
 windows = [8, 21, 55, 99]
 message = ''
@@ -14,18 +14,20 @@ message = ''
 for coin in coins:
     try:
         ticker = coin + '/USDT'
-        data = x.fetch_ohlcv(ticker, '1h')
+        data = binance.fetch_ohlcv(ticker, '1h')
     except:
         ticker = coin + '/BTC'
-        data = x.fetch_ohlcv(ticker, '1h')
-    df = pd.DataFrame(columns=['timestamp','open', 'high', 'low', 'close', 'volume'],
-                      data=data)
+        data = binance.fetch_ohlcv(ticker, '1h')
 
     averages = pd.DataFrame()
+    df = pd.DataFrame(
+        columns=['timestamp','open', 'high', 'low', 'close', 'volume'],
+        data=data
+    )
 
     for window in windows:
-        averages[window] = df['open'].rolling(window=window).mean()
-        # averages[window] = df['open'].ewm(span=window).mean()
+        averages.loc[:, window] = df['open'].rolling(window=window).mean()
+        # averages.loc[:, window] = df['open'].ewm(span=window).mean()
 
     averages.dropna(inplace=True)
     averages.reset_index(drop=True, inplace=True)
@@ -58,7 +60,10 @@ for coin in coins:
 
 # Send the text message
 if len(message) > 0:
+    print('Signal created')
     for recipient in recipients:
-        client.messages.create(from_=twilio_number,
-                               body=message,
-                               to=recipient)
+        client.messages.create(
+            from_=twilio_number,
+            body=message,
+            to=recipient
+        )
