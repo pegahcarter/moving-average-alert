@@ -1,66 +1,56 @@
-import ccxt
 import pandas as pd
-import numpy as np
-from datetime import datetime
+from itertools import combinations
 from twilio.rest import Client
-from api import account_sid, auth_token, twilio_number, recipients, coins
+from api import account_sid, auth_token, twilio_number, recipients, coins, fetch_data
 
-client = Client(account_sid, auth_token)
-binance = ccxt.binance()
 
-windows = [8, 21, 55, 99]
+averages = [8, 21, 55, 99]
+avg_pairs = list(combinations(averages, 2))
 message = ''
 
-for coin in coins:
+def fetch_data(coin):
+    binance = ccxt.binance()
     try:
         ticker = coin + '/USDT'
         data = binance.fetch_ohlcv(ticker, '1h')
     except:
         ticker = coin + '/BTC'
         data = binance.fetch_ohlcv(ticker, '1h')
+    return ticker, data
 
-    averages = pd.DataFrame()
+
+for coin in coins:
+    ticker, data = fetch_data(coin)
     df = pd.DataFrame(
         columns=['timestamp','open', 'high', 'low', 'close', 'volume'],
         data=data
     )
 
-    for window in windows:
-        averages.loc[:, window] = df['open'].rolling(window=window).mean()
-        # averages.loc[:, window] = df['open'].ewm(span=window).mean()
+    for average in averages:
+        df.loc[:, average] = df['close'].rolling(window=average).mean()
+        # df.loc[:, average] = df['close'].ewm(span=average).mean()
 
-    averages.dropna(inplace=True)
-    averages.reset_index(drop=True, inplace=True)
-    averages.sort_index(inplace=True)
+    daily = df.loc[-24:, averages]
 
-    daily = averages[-24:]
-    averages_crossed = 0
-
-    for avg1 in windows[:-1]:
-        for avg2 in windows[windows.index(avg1) + 1:]:
-            col = str(avg1) + ' > ' + str(avg2)
-            daily.loc[:, col] = daily[avg1] > daily[avg2]
-            num_changes = len(daily) - len(daily[daily[col] == True])
-            if num_changes > 0:
-                averages_crossed += 1
-
-    daily.drop(windows,axis=1, inplace=True)
+    averages_crossed = sum([1 for avg1, avg2 in avg_pairs
+                         if True and False in (daily[avg1] > daily[avg2])])
 
     sentiment = None
-    if averages_crossed == len(list(daily)):
-        support_pct = daily.iloc[-1].sum()
-        if support_pct == 0: # BEARISH
-            sentiment = "BEARISH"
-        elif support_pct == len(list(daily)): # BULLISH
-            sentiment = "BULLISH"
+    if averages_crossed == len(avg_pairs):
+        last_avg = daily.iloc[-1].pct_change().dropna()
+        if len(last_avg) == len(last_avg[last_avg < 0]): # BEARISH
+            sentiment = 'BEARISH'
+        elif len(last_avg) == len(last_avg[last_avg > 0]): # BULLISH
+            sentiment = 'BULLISH'
 
     if sentiment is not None:
         message += sentiment + ':   ' + ticker + '\n'
 
 
 # Send the text message
+client = Client(account_sid, auth_token)
 if len(message) > 0:
-    print('Signal created')
+    print(message)
     for recipient in recipients:
         client.messages.create(
             from_=twilio_number,
