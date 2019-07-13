@@ -2,10 +2,9 @@ import ccxt
 import pandas as pd
 from itertools import combinations
 from twilio.rest import Client
-from api import account_sid, auth_token, twilio_number, recipients, coins
+from api import *
 
 
-averages = [8, 25, 99, 200]
 avg_pairs = list(combinations(averages, 2))
 message = ''
 
