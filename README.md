@@ -1,4 +1,4 @@
-Carter Carlson
+Carl Farterson
 
 ### Concept
 Technical analysis still plays a big role in price movement within the cryptocurrency world.  This repo takes advantage of moving averages and sends text notifications if the moving average of a price has strong support or strong resistance.
